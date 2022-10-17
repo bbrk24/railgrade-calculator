@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Railgrade train calculator</title>
+  </head>
+  <body>
+    <header>
+      <h1>Railgrade train calculator</h1>
+      <p>
+        This page calculates some information about a train for the game Railgrade. Some information may not be 100%
+        accurate, especially for larger trains.
+      </p>
+    </header>
+    <main>
+      <form onsubmit="e => e.preventDefault()">
+        <label for="workhorse">Workhorse Engine:</label>
+        <input id="workhorse" type="number" min="0" value="0" onchange="reloadStats()" />
+        <br />
+        <label for="boiler">Boiler Engine:</label>
+        <input id="boiler" type="number" min="0" value="0" onchange="reloadStats()" />
+        <br />
+        <label for="industrial">Industrial Engine:</label>
+        <input id="industrial" type="number" min="0" value="0" onchange="reloadStats()" />
+        <br />
+        <label for="spark">Spark Engine:</label>
+        <input id="spark" type="number" min="0" value="0" onchange="reloadStats()" />
+        <br />
+        <label for="custom">C.U.S.T.O.M. Engine:</label>
+        <input id="custom" type="number" min="0" value="0" onchange="reloadStats()" />
+        <br />
+        <label for="rescue">RESCUE Engine:</label>
+        <input id="rescue" type="number" min="0" value="0" onchange="reloadStats()" />
+        <br />
+        <label for="cars">Freight cars:</label>
+        <input id="cars" type="number" min="0" value="0" onchange="reloadStats()" />
+      </form>
+      <br />
+      <div>
+        Top speed: <span id="top-speed">0</span>km/h<br />
+        Speed uphill: <span id="hill-speed">0</span>km/h<br />
+        Initial cost: &yen;<span id="cost">0</span><br />
+        Upkeep: &yen;<span id="upkeep">0</span>/min
+        <div id="accel-info">
+          Acceleration: <span id="accel">0</span>km/s&sup2;
+        </div>
+        <div id="no-accel-info" style="display: none;">Cannot determine acceleration for mixed engine types.</div>
+      </div>
+    </main>
+    <script type="text/javascript">
+      class Engine {
+        /**
+         * @param {number} costPower
+         * @param {number} upkeepPower
+         * @param {number} climbRating
+         * @param {(carsPerEngine: number) => number} speed
+         * @param {(carsPerEngine: number) => number} accel
+         */
+        constructor(costPower, upkeepPower, climbRating, speed, accel) {
+          const cost = 1 << (costPower + 8);
+          const upkeep = 1 << (upkeepPower + 2);
+          Object.defineProperties(this, {
+            climbRating: {
+              enumerable: true,
+              value: climbRating
+            },
+            speed: { value: speed },
+            accel: { value: accel },
+            cost: {
+              enumerable: true,
+              value: cost
+            },
+            upkeep: {
+              enumerable: true,
+              value: upkeep
+            }
+          });
+        }
+      }
+      
+      // I don't actually know what the speed/acceleration formulas are.
+      // These are just formulas that are accurate based on experimental data.
+      // I did not collect data where carsPerEngine > 6.
+      const workhorse = new Engine(1, 1, 0.5, carsPerEngine => {
+        if (carsPerEngine <= 2) return 50;
+        if (carsPerEngine <= 4) return 54 - 2 * carsPerEngine;
+        return 70 - 6 * carsPerEngine;
+      }, carsPerEngine => {
+        if (carsPerEngine === 0) return 11/3;
+        if (carsPerEngine <= 2) return 10/3;
+        if (carsPerEngine <= 4) return 3;
+        return Math.max(2, (17 - 2 * carsPerEngine) / 3);
+      });
+      const boiler = new Engine(0, 0, 0.4, carsPerEngine => 33 - (carsPerEngine ** 4) / 230, carsPerEngine => {
+        if (carsPerEngine < 2) return 8/3;
+        if (carsPerEngine <= 4) return 7/3;
+        if (carsPerEngine < 6) return 2;
+        return 5/3;
+      });
+      const industrial = new Engine(2, 2, 0.95, carsPerEngine => {
+        if (carsPerEngine <= 5) return 30;
+        if (carsPerEngine >= 6) return 27;
+        return 29;
+      }, carsPerEngine => 4 - 0.12 * carsPerEngine);
+      const spark = new Engine(
+        3, 3, 0.5,
+        carsPerEngine => Math.min(75, 84 - 2 * carsPerEngine),
+        carsPerEngine => 6.2 - 0.16 * carsPerEngine
+      );
+      const custom = new Engine(1, 1, 0.75, carsPerEngine => {
+        if (carsPerEngine >= 2) return 97.84 - 14.6 * carsPerEngine;
+        return Math.min(75, 78.83 - 5 * carsPerEngine);
+      }, carsPerEngine => {
+        if (carsPerEngine > 2) return Math.max(1/3, 5.76 - carsPerEngine);
+        if (carsPerEngine === 0) return 14/3
+        if (carsPerEngine <= 1) return 13/3
+        return 4;
+      });
+      const rescue = new Engine(3, 2, 1, _ => 27, carsPerEngine => 5.04 - 0.106 * carsPerEngine);
+
+      const engines = { workhorse, boiler, industrial, spark, custom, rescue };
+
+      /** @param {readonly unknown[]} arr */
+      function allSame(arr) {
+        let firstItem = arr[0];
+        for (const item of arr) {
+          if (item !== firstItem) return false;
+        }
+        return true;
+      }
+
+      /** @param {Record<keyof typeof engines, number>} obj */
+      function makeArr(obj) {
+        /** @type {(keyof typeof engines)[]} */
+        let arr = [];
+        for (const [engine, count] of Object.entries(obj)) {
+          if (!count) continue;
+          for (let i = 0; i < count; ++i) arr.push(engine);
+        }
+        return arr;
+      }
+
+      /**
+       * @param {readonly any[]} arr
+       * @param {(arg: any) => number} f
+       * @return {number}
+       */
+      function avg(arr, f) {
+        return arr.reduce((prev, el) => prev + f(el) / arr.length, 0);
+      }
+
+      /**
+       * @param {readonly (keyof typeof engines)[]} engineNames
+       * @param {number} cars
+       * @returns {{topSpeed: number, hillSpeed: number, cost: number, upkeep: number, accel?: number}}
+       */
+      function calcStats(engineNames, cars) {
+        const carsPerEngine = cars / engineNames.length;
+        const engineObjects = engineNames.map(el => engines[el]);
+        const topSpeed = avg(engineObjects, engine => engine.speed(carsPerEngine));
+
+        /** @type {number?} */
+        let accel;
+        if (engineNames.length === 0) accel = 0;
+        else if (allSame(engineNames)) accel = engineObjects[0].accel(carsPerEngine);
+
+        return {
+          topSpeed: Math.round(topSpeed),
+          hillSpeed: Math.round(topSpeed * avg(engineObjects, engine => engine.climbRating)),
+          cost: cars * 16 + engineObjects.reduce((cost, engine) => cost + engine.cost, 0),
+          upkeep: cars + engineObjects.reduce((upkeep, engine) => upkeep + engine.upkeep, 0),
+          accel
+        };
+      }
+
+      /** @param {number} x */
+      function roundThird(x) {
+        const int = Math.floor(x);
+        if (x - int <= 1/6) return String(int);
+        if (x - int > 5/6) return String(int + 1);
+        if (x - int <= 0.5) return int + '&frac13;';
+        return int + '&frac23;';
+      }
+
+      const elements = {
+        /** @type {HTMLInputElement} */
+        workhorse: document.getElementById('workhorse'),
+        /** @type {HTMLInputElement} */
+        boiler: document.getElementById('boiler'),
+        /** @type {HTMLInputElement} */
+        industrial: document.getElementById('industrial'),
+        /** @type {HTMLInputElement} */
+        spark: document.getElementById('spark'),
+        /** @type {HTMLInputElement} */
+        custom: document.getElementById('custom'),
+        /** @type {HTMLInputElement} */
+        rescue: document.getElementById('rescue'),
+        /** @type {HTMLInputElement} */
+        cars: document.getElementById('cars'),
+        /** @type {HTMLSpanElement} */
+        topSpeed: document.getElementById('top-speed'),
+        /** @type {HTMLSpanElement} */
+        hillSpeed: document.getElementById('hill-speed'),
+        /** @type {HTMLSpanElement} */
+        cost: document.getElementById('cost'),
+        /** @type {HTMLSpanElement} */
+        upkeep: document.getElementById('upkeep'),
+        /** @type {HTMLDivElement} */
+        accelInfo: document.getElementById('accel-info'),
+        /** @type {HTMLDivElement} */
+        noAccelInfo: document.getElementById('no-accel-info'),
+        /** @type {HTMLSpanElement} */
+        accel: document.getElementById('accel')
+      };
+
+      function reloadStats() {
+        const engineCounts = {
+          workhorse: elements.workhorse.value,
+          boiler: elements.boiler.value,
+          industrial: elements.industrial.value,
+          spark: elements.spark.value,
+          custom: elements.custom.value,
+          rescue: elements.rescue.value
+        };
+        const stats = calcStats(makeArr(engineCounts), Number(elements.cars.value));
+        elements.topSpeed.innerHTML = stats.topSpeed;
+        elements.hillSpeed.innerHTML = stats.hillSpeed;
+        elements.cost.innerHTML = stats.cost;
+        elements.upkeep.innerHTML = stats.upkeep;
+
+        if (stats.accel == null) {
+          elements.accelInfo.style.display = 'none';
+          elements.noAccelInfo.style.display = 'block';
+        } else {
+          elements.accelInfo.style.display = 'block';
+          elements.noAccelInfo.style.display = 'none';
+
+          elements.accel.innerHTML = roundThird(stats.accel);
+        }
+      }
+    </script>
+  </body>  
+</html>
