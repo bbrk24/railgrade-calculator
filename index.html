@@ -12,27 +12,27 @@
       </p>
     </header>
     <main>
-      <form onsubmit="e => e.preventDefault()">
+      <form onchange="reloadStats()">
         <label for="workhorse">Workhorse Engine:</label>
-        <input id="workhorse" type="number" min="0" value="0" onchange="reloadStats()" />
+        <input id="workhorse" type="number" min="0" value="0" />
         <br />
         <label for="boiler">Boiler Engine:</label>
-        <input id="boiler" type="number" min="0" value="0" onchange="reloadStats()" />
+        <input id="boiler" type="number" min="0" value="0" />
         <br />
         <label for="industrial">Industrial Engine:</label>
-        <input id="industrial" type="number" min="0" value="0" onchange="reloadStats()" />
+        <input id="industrial" type="number" min="0" value="0" />
         <br />
         <label for="spark">Spark Engine:</label>
-        <input id="spark" type="number" min="0" value="0" onchange="reloadStats()" />
+        <input id="spark" type="number" min="0" value="0" />
         <br />
         <label for="custom">C.U.S.T.O.M. Engine:</label>
-        <input id="custom" type="number" min="0" value="0" onchange="reloadStats()" />
+        <input id="custom" type="number" min="0" value="0" />
         <br />
         <label for="rescue">RESCUE Engine:</label>
-        <input id="rescue" type="number" min="0" value="0" onchange="reloadStats()" />
+        <input id="rescue" type="number" min="0" value="0" />
         <br />
         <label for="cars">Freight cars:</label>
-        <input id="cars" type="number" min="0" value="0" onchange="reloadStats()" />
+        <input id="cars" type="number" min="0" value="0" />
       </form>
       <br />
       <div>
@@ -133,7 +133,7 @@
         /** @type {(keyof typeof engines)[]} */
         let arr = [];
         for (const [engine, count] of Object.entries(obj)) {
-          if (!count) continue;
+          if (!+count) continue;
           for (let i = 0; i < count; ++i) arr.push(engine);
         }
         return arr;
