@@ -181,7 +181,7 @@
       function roundThird(x) {
         const int = Math.floor(x);
         if (x - int <= 1/6) return String(int);
-        if (x - int <= 3/2) return (int || '') + '&frac13;';
+        if (x - int <= 1/2) return (int || '') + '&frac13;';
         if (x - int <= 5/6) return (int || '') + '&frac23;';
         return String(int + 1);
       }
