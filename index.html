@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
   <head>
+    <meta charset="UTF-8" />
     <title>Railgrade train calculator</title>
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet" />
     <style>
@@ -89,8 +90,8 @@
       <div>
         Top speed: <span id="top-speed">0</span>km/h<br />
         Speed uphill: <span id="hill-speed">0</span>km/h<br />
-        Initial cost: &yen;<span id="cost">0</span><br />
-        Upkeep: &yen;<span id="upkeep">0</span>/min
+        Initial cost: ¥<span id="cost">0</span><br />
+        Upkeep: ¥<span id="upkeep">0</span>/min
         <div id="accel-info">
           Acceleration: <span id="accel">0</span>km/h/s<br />
           Time to max speed: <span id="accel-time">0</span>s
@@ -98,7 +99,7 @@
         <div id="no-accel-info" style="display: none;">Cannot determine acceleration for mixed engine types.</div>
       </div>
     </main>
-    <script type="text/javascript">
+    <script>
       class Engine {
         /**
          * @param {number} costPower
@@ -127,7 +128,7 @@
       Engine.prototype.accel = function accel(_) {
         throw new Error('not implemented');
       };
-      
+
       // I don't actually know what the speed/acceleration formulas are.
       // These are just formulas that are accurate based on experimental data.
       // I did not collect data where carsPerEngine > 6.
@@ -315,5 +316,5 @@
         }
       }
     </script>
-  </body>  
+  </body>
 </html>
