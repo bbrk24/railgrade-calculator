@@ -69,11 +69,11 @@
       Engine.prototype.upkeep = 0;
       Engine.prototype.climbRating = 0;
       /** @type {(carsPerEngine: number) => number} */
-      Engine.prototype.speed = function speed() {
+      Engine.prototype.speed = function speed(_) {
         throw new Error('not implemented');
       };
       /** @type {(carsPerEngine: number) => number} */
-      Engine.prototype.accel = function accel() {
+      Engine.prototype.accel = function accel(_) {
         throw new Error('not implemented');
       };
       
@@ -115,7 +115,7 @@
         if (carsPerEngine <= 1) return 13/3
         return 4;
       });
-      const rescue = new Engine(3, 2, 1, _ => 27, carsPerEngine => 5.04 - 0.106 * carsPerEngine);
+      const rescue = new Engine(3, 2, 1, () => 27, carsPerEngine => 5.04 - 0.106 * carsPerEngine);
 
       const engines = { workhorse, boiler, industrial, spark, custom, rescue };
 
@@ -150,6 +150,16 @@
       }
 
       /**
+       * @template T
+       * @param {readonly T[]} arr
+       * @param {(arg: T) => number} f
+       * @return {number}
+       */
+      function sum(arr, f) {
+        return arr.reduce((prev, el) => prev + f(el), 0);
+      }
+
+      /**
        * @param {readonly (keyof typeof engines)[]} engineNames
        * @param {number} cars
        */
@@ -169,8 +179,8 @@
         return {
           topSpeed: Math.round(topSpeed),
           hillSpeed: Math.round(topSpeed * avg(engineObjects, engine => engine.climbRating)),
-          cost: cars * 16 + engineObjects.reduce((cost, engine) => cost + engine.cost, 0),
-          upkeep: cars + engineObjects.reduce((upkeep, engine) => upkeep + engine.upkeep, 0),
+          cost: cars * 16 + sum(engineObjects, engine => engine.cost),
+          upkeep: cars + sum(engineObjects, engine => engine.upkeep),
           /** @type {number | undefined} */
           accel,
           accelTime
