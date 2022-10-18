@@ -56,26 +56,25 @@
          * @param {(carsPerEngine: number) => number} accel
          */
         constructor(costPower, upkeepPower, climbRating, speed, accel) {
-          const cost = 1 << (costPower + 8);
-          const upkeep = 1 << (upkeepPower + 2);
-          Object.defineProperties(this, {
-            climbRating: {
-              enumerable: true,
-              value: climbRating
-            },
-            speed: { value: speed },
-            accel: { value: accel },
-            cost: {
-              enumerable: true,
-              value: cost
-            },
-            upkeep: {
-              enumerable: true,
-              value: upkeep
-            }
-          });
+          this.cost = 1 << (costPower + 8);
+          this.upkeep = 1 << (upkeepPower + 2);
+          this.climbRating = climbRating;
+          this.speed = speed;
+          this.accel = accel;
         }
       }
+
+      Engine.prototype.cost = 0;
+      Engine.prototype.upkeep = 0;
+      Engine.prototype.climbRating = 0;
+      /** @type {(carsPerEngine: number) => number} */
+      Engine.prototype.speed = function speed() {
+        throw new Error('not implemented');
+      };
+      /** @type {(carsPerEngine: number) => number} */
+      Engine.prototype.accel = function accel() {
+        throw new Error('not implemented');
+      };
       
       // I don't actually know what the speed/acceleration formulas are.
       // These are just formulas that are accurate based on experimental data.
@@ -128,7 +127,7 @@
         return true;
       }
 
-      /** @param {Record<keyof typeof engines, number>} obj */
+      /** @param {Record<keyof typeof engines, number | `${number}`>} obj */
       function makeArr(obj) {
         /** @type {(keyof typeof engines)[]} */
         let arr = [];
@@ -140,8 +139,9 @@
       }
 
       /**
-       * @param {readonly any[]} arr
-       * @param {(arg: any) => number} f
+       * @template T
+       * @param {readonly T[]} arr
+       * @param {(arg: T) => number} f
        * @return {number}
        */
       function avg(arr, f) {
@@ -151,14 +151,12 @@
       /**
        * @param {readonly (keyof typeof engines)[]} engineNames
        * @param {number} cars
-       * @returns {{topSpeed: number, hillSpeed: number, cost: number, upkeep: number, accel?: number}}
        */
       function calcStats(engineNames, cars) {
         const carsPerEngine = cars / engineNames.length;
         const engineObjects = engineNames.map(el => engines[el]);
         const topSpeed = avg(engineObjects, engine => engine.speed(carsPerEngine));
 
-        /** @type {number?} */
         let accel;
         if (engineNames.length === 0) accel = 0;
         else if (allSame(engineNames)) accel = engineObjects[0].accel(carsPerEngine);
@@ -168,6 +166,7 @@
           hillSpeed: Math.round(topSpeed * avg(engineObjects, engine => engine.climbRating)),
           cost: cars * 16 + engineObjects.reduce((cost, engine) => cost + engine.cost, 0),
           upkeep: cars + engineObjects.reduce((upkeep, engine) => upkeep + engine.upkeep, 0),
+          /** @type {number | undefined} */
           accel
         };
       }
