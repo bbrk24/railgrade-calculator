@@ -2,6 +2,45 @@
 <html>
   <head>
     <title>Railgrade train calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: Questrial, sans-serif;
+        font-size: 1.1rem;
+      }
+      input {
+        font: inherit;
+        color: inherit;
+        background-color: transparent;
+        border: none;
+      }
+      table {
+        border-spacing: 0;
+      }
+      td:first-child {
+        padding-right: 1em;
+      }
+      @media (prefers-color-scheme: light) {
+        tr:nth-child(odd) {
+          background-color: #eee;
+        }
+        tr:nth-child(even) {
+          background-color: gainsboro;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #1c1c1c;
+          color: whitesmoke;
+        }
+        tr:nth-child(odd) {
+          background-color: #2d2d2d;
+        }
+        tr:nth-child(even) {
+          background-color: #252525;
+        }
+      }
+    </style>
   </head>
   <body>
     <header>
@@ -12,27 +51,39 @@
       </p>
     </header>
     <main>
-      <form onchange="reloadStats()">
-        <label for="workhorse">Workhorse Engine:</label>
-        <input id="workhorse" type="number" min="0" value="0" />
-        <br />
-        <label for="boiler">Boiler Engine:</label>
-        <input id="boiler" type="number" min="0" value="0" />
-        <br />
-        <label for="industrial">Industrial Engine:</label>
-        <input id="industrial" type="number" min="0" value="0" />
-        <br />
-        <label for="spark">Spark Engine:</label>
-        <input id="spark" type="number" min="0" value="0" />
-        <br />
-        <label for="custom">C.U.S.T.O.M. Engine:</label>
-        <input id="custom" type="number" min="0" value="0" />
-        <br />
-        <label for="rescue">RESCUE Engine:</label>
-        <input id="rescue" type="number" min="0" value="0" />
-        <br />
-        <label for="cars">Freight cars:</label>
-        <input id="cars" type="number" min="0" value="0" />
+      <form onchange="reloadStats()" onkeyup="reloadStats()">
+        <table>
+          <tbody>
+            <tr>
+              <td><label for="workhorse">Workhorse Engine:</label></td>
+              <td><input id="workhorse" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="boiler">Boiler Engine:</label></td>
+              <td><input id="boiler" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="industrial">Industrial Engine:</label></td>
+              <td><input id="industrial" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="spark">Spark Engine:</label></td>
+              <td><input id="spark" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="custom">C.U.S.T.O.M. Engine:</label></td>
+              <td><input id="custom" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="rescue">RESCUE Engine:</label></td>
+              <td><input id="rescue" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="cars">Freight cars:</label></td>
+              <td><input id="cars" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+          </tbody>
+        </table>
       </form>
       <br />
       <div>
