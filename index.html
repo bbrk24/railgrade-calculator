@@ -41,7 +41,8 @@
         Initial cost: &yen;<span id="cost">0</span><br />
         Upkeep: &yen;<span id="upkeep">0</span>/min
         <div id="accel-info">
-          Acceleration: <span id="accel">0</span>km/s&sup2;
+          Acceleration: <span id="accel">0</span>km/h/s<br />
+          Time to max speed: <span id="accel-time">0</span>s
         </div>
         <div id="no-accel-info" style="display: none;">Cannot determine acceleration for mixed engine types.</div>
       </div>
@@ -157,9 +158,13 @@
         const engineObjects = engineNames.map(el => engines[el]);
         const topSpeed = avg(engineObjects, engine => engine.speed(carsPerEngine));
 
+        /** @type {number | undefined} */
         let accel;
         if (engineNames.length === 0) accel = 0;
         else if (allSame(engineNames)) accel = engineObjects[0].accel(carsPerEngine);
+
+        let accelTime = 0;
+        if (accel) accelTime = topSpeed / accel;
 
         return {
           topSpeed: Math.round(topSpeed),
@@ -167,7 +172,8 @@
           cost: cars * 16 + engineObjects.reduce((cost, engine) => cost + engine.cost, 0),
           upkeep: cars + engineObjects.reduce((upkeep, engine) => upkeep + engine.upkeep, 0),
           /** @type {number | undefined} */
-          accel
+          accel,
+          accelTime
         };
       }
 
@@ -175,9 +181,17 @@
       function roundThird(x) {
         const int = Math.floor(x);
         if (x - int <= 1/6) return String(int);
-        if (x - int > 5/6) return String(int + 1);
-        if (x - int <= 0.5) return int + '&frac13;';
-        return int + '&frac23;';
+        if (x - int <= 3/2) return (int || '') + '&frac13;';
+        if (x - int <= 5/6) return (int || '') + '&frac23;';
+        return String(int + 1);
+      }
+
+      /** @param {number} x */
+      function roundHalf(x) {
+        const int = Math.floor(x);
+        if (x - int <= 1/4) return String(int);
+        if (x - int <= 3/4) return (int || '') + '&frac12;';
+        return String(int + 1);
       }
 
       const elements = {
@@ -208,7 +222,9 @@
         /** @type {HTMLDivElement} */
         noAccelInfo: document.getElementById('no-accel-info'),
         /** @type {HTMLSpanElement} */
-        accel: document.getElementById('accel')
+        accel: document.getElementById('accel'),
+        /** @type {HTMLSpanElement} */
+        accelTime: document.getElementById('accel-time')
       };
 
       function reloadStats() {
@@ -234,6 +250,7 @@
           elements.noAccelInfo.style.display = 'none';
 
           elements.accel.innerHTML = roundThird(stats.accel);
+          elements.accelTime.innerHTML = roundHalf(stats.accelTime);
         }
       }
     </script>
