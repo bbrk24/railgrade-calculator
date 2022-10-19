@@ -11,9 +11,9 @@
     "node": ">=12"
   },
   "scripts": {
-    "build": "parcel build src/index.html --no-source-maps",
+    "build": "parcel build src/index.html --no-source-maps --public-url 'https://bbrk24.github.io/railgrade-calculator'",
     "start": "parcel serve src/index.html --open",
-    "clean": "rm -R dist/*",
+    "clean": "rm -R dist/* && gh-pages-clean",
     "deploy": "gh-pages -d dist"
   }
 }
