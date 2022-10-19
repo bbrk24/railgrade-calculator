@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Railgrade train calculator</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Questrial&display=swap"
+      rel="stylesheet"
+      referrerpolicy="no-referrer"
+    />
+    <link href="./index.css" rel="stylesheet" />
+    <script src="./index.ts" defer="defer"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Railgrade train calculator</h1>
+      <p>
+        This page calculates some information about a train for the game Railgrade. Some information may not be 100%
+        accurate, especially for larger trains.
+      </p>
+    </header>
+    <main>
+      <form onchange="reloadStats()" onkeyup="reloadStats()">
+        <table>
+          <tbody>
+            <tr>
+              <td><label for="workhorse">Workhorse Engine:</label></td>
+              <td><input id="workhorse" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="boiler">Boiler Engine:</label></td>
+              <td><input id="boiler" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="industrial">Industrial Engine:</label></td>
+              <td><input id="industrial" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="spark">Spark Engine:</label></td>
+              <td><input id="spark" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="custom">C.U.S.T.O.M. Engine:</label></td>
+              <td><input id="custom" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="rescue">RESCUE Engine:</label></td>
+              <td><input id="rescue" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+            <tr>
+              <td><label for="cars">Freight cars:</label></td>
+              <td><input id="cars" type="number" min="0" placeholder="Enter number..." /></td>
+            </tr>
+          </tbody>
+        </table>
+      </form>
+      <br />
+      <div class="output">
+        <span id="error" hidden="hidden"></span>
+        Top speed: <span id="top-speed">0</span>km/h<br />
+        Speed uphill: <span id="hill-speed">0</span>km/h<br />
+        Initial cost: ¥<span id="cost">0</span><br />
+        Upkeep: ¥<span id="upkeep">0</span>/min
+        <div id="accel-info">
+          Acceleration: <span id="accel">0</span>km/h/s<br />
+          Time to max speed: <span id="accel-time">0</span>s
+        </div>
+        <div id="no-accel-info" hidden="hidden">Cannot determine acceleration for mixed engine types.</div>
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "es2020",
+    "noResolve": true,
+    "removeComments": true,
+    "newLine": "lf",
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "alwaysStrict": true,
+    "skipLibCheck": true,
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts"]
+}
