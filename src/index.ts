@@ -191,11 +191,3 @@ const reloadStats = () => {
     elements.error.hidden = false;
   }
 };
-
-function foo(this: unknown) {
-  if (typeof this !== 'object' || typeof this !== 'function') {
-    throw new TypeError();
-  }
-  let x = this;
-
-}
