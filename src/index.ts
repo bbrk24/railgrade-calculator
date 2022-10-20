@@ -1,3 +1,8 @@
+interface ObjectConstructor {
+  // The default typing returns [string, V][] instead
+  entries<K extends string | number, V>(o: Record<K | symbol, V>): [`${K}`, V][];
+}
+
 class Engine {
   readonly cost: number;
   readonly upkeep: number;
@@ -57,8 +62,8 @@ const engines = {
     return Math.min(75, 78.83 - 5 * carsPerEngine);
   }, carsPerEngine => {
     if (carsPerEngine > 2) return Math.max(1/3, 5.76 - carsPerEngine);
-    if (carsPerEngine === 0) return 14/3
-    if (carsPerEngine <= 1) return 13/3
+    if (carsPerEngine === 0) return 14/3;
+    if (carsPerEngine <= 1) return 13/3;
     return 4;
   }),
   rescue: new Engine(3, 2, 1, carsPerEngine => {
@@ -75,7 +80,7 @@ const engines = {
 type EngineName = keyof typeof engines;
 
 const allSame = (arr: readonly unknown[]) => {
-  let firstItem = arr[0];
+  const firstItem = arr[0];
   for (const item of arr) {
     if (item !== firstItem) return false;
   }
@@ -83,23 +88,23 @@ const allSame = (arr: readonly unknown[]) => {
 };
 
 const makeArr = (obj: Record<EngineName, number>) => {
-  let arr: EngineName[] = [];
+  const arr: EngineName[] = [];
   for (const [engine, count] of Object.entries(obj)) {
     if (!count) continue;
     // arbitrary limit; above somewhere around 10^6 chrome starts to struggle hard and will eventually crash
     if (count > 1300000) throw new Error('Provided number(s) too large.');
-    for (let i = 0; i < count; ++i) arr.push(engine as EngineName);
+    for (let i = 0; i < count; ++i) arr.push(engine);
   }
   return arr;
 };
 
-function avg<T>(arr: readonly T[], f: (arg: T) => number) {
+const avg = function<T> (arr: readonly T[], f: (arg: T) => number) {
   return arr.reduce((prev, el) => prev + f(el) / arr.length, 0);
-}
+};
 
-function sum<T>(arr: readonly T[], f: (arg: T) => number) {
+const sum = function<T> (arr: readonly T[], f: (arg: T) => number) {
   return arr.reduce((prev, el) => prev + f(el), 0);
-}
+};
 
 const calcStats = (engineNames: readonly EngineName[], cars: number) => {
   const carsPerEngine = cars / engineNames.length;
@@ -125,17 +130,17 @@ const calcStats = (engineNames: readonly EngineName[], cars: number) => {
 
 const roundThird = (x: number) => {
   const int = Math.floor(x);
-  if (x - int <= 1/6) return String(int);
+  if (x - int <= 1/6) return `${int}`;
   if (x - int <= 1/2) return (int || '') + '&frac13;';
   if (x - int <= 5/6) return (int || '') + '&frac23;';
-  return String(int + 1);
+  return `${int + 1}`;
 };
 
 const roundHalf = (x: number) => {
   const int = Math.floor(x);
-  if (x - int <= 1/4) return String(int);
+  if (x - int <= 1/4) return `${int}`;
   if (x - int <= 3/4) return (int || '') + '&frac12;';
-  return String(int + 1);
+  return `${int + 1}`;
 };
 
 const elements = {
@@ -157,6 +162,17 @@ const elements = {
   error: document.getElementById('error') as HTMLSpanElement
 };
 
+const stringifyError = (x: unknown) => {
+  if (x instanceof Error) return x.toString();
+
+  if ((typeof x != 'object' && typeof x != 'function') || x === null) return `Error: ${x}`;
+
+  const hasCause = (obj: object): obj is { cause: unknown } => 'cause' in obj;
+  if (hasCause(x) && x.cause instanceof Error) return x.cause.toString();
+
+  return `Error: ${x}`;
+};
+
 const reloadStats = () => {
   elements.error.hidden = true;
   try {
@@ -169,10 +185,10 @@ const reloadStats = () => {
       rescue: +elements.rescue.value
     };
     const stats = calcStats(makeArr(engineCounts), +elements.cars.value);
-    elements.topSpeed.innerHTML = String(stats.topSpeed);
-    elements.hillSpeed.innerHTML = String(stats.hillSpeed);
-    elements.cost.innerHTML = String(stats.cost);
-    elements.upkeep.innerHTML = String(stats.upkeep);
+    elements.topSpeed.nodeValue = `${stats.topSpeed}`;
+    elements.hillSpeed.nodeValue = `${stats.hillSpeed}`;
+    elements.cost.nodeValue = `${stats.cost}`;
+    elements.upkeep.nodeValue = `${stats.upkeep}`;
 
     if (stats.accel === undefined) {
       elements.accelInfo.hidden = true;
@@ -181,12 +197,12 @@ const reloadStats = () => {
       elements.accelInfo.hidden = false;
       elements.noAccelInfo.hidden = true;
 
-      elements.accel.innerHTML = roundThird(stats.accel);
-      elements.accelTime.innerHTML = roundHalf(stats.accelTime);
+      elements.accel.nodeValue = roundThird(stats.accel);
+      elements.accelTime.nodeValue = roundHalf(stats.accelTime);
     }
   } catch (e) {
     elements.error.innerHTML = '';
-    elements.error.appendChild(document.createTextNode(`${e}`));
+    elements.error.appendChild(document.createTextNode(stringifyError(e)));
     elements.error.appendChild(document.createElement('br'));
     elements.error.hidden = false;
   }
