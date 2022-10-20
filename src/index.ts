@@ -159,7 +159,8 @@ const elements = {
   noAccelInfo: document.getElementById('no-accel-info') as HTMLDivElement,
   accel: document.getElementById('accel') as HTMLSpanElement,
   accelTime: document.getElementById('accel-time') as HTMLSpanElement,
-  error: document.getElementById('error') as HTMLSpanElement
+  error: document.getElementById('error') as HTMLSpanElement,
+  form: document.getElementById('car-counts') as HTMLFormElement
 };
 
 const stringifyError = (x: unknown) => {
@@ -185,10 +186,10 @@ const reloadStats = () => {
       rescue: +elements.rescue.value
     };
     const stats = calcStats(makeArr(engineCounts), +elements.cars.value);
-    elements.topSpeed.nodeValue = `${stats.topSpeed}`;
-    elements.hillSpeed.nodeValue = `${stats.hillSpeed}`;
-    elements.cost.nodeValue = `${stats.cost}`;
-    elements.upkeep.nodeValue = `${stats.upkeep}`;
+    elements.topSpeed.textContent = `${stats.topSpeed}`;
+    elements.hillSpeed.textContent = `${stats.hillSpeed}`;
+    elements.cost.textContent = `${stats.cost}`;
+    elements.upkeep.textContent = `${stats.upkeep}`;
 
     if (stats.accel === undefined) {
       elements.accelInfo.hidden = true;
@@ -197,9 +198,10 @@ const reloadStats = () => {
       elements.accelInfo.hidden = false;
       elements.noAccelInfo.hidden = true;
 
-      elements.accel.nodeValue = roundThird(stats.accel);
-      elements.accelTime.nodeValue = roundHalf(stats.accelTime);
+      elements.accel.innerHTML = roundThird(stats.accel);
+      elements.accelTime.innerHTML = roundHalf(stats.accelTime);
     }
+    console.log(stats);
   } catch (e) {
     elements.error.innerHTML = '';
     elements.error.appendChild(document.createTextNode(stringifyError(e)));
@@ -207,3 +209,20 @@ const reloadStats = () => {
     elements.error.hidden = false;
   }
 };
+
+const debounceTable: Partial<Record<string, Map<EventTarget, number>>> = {};
+
+const debounce = (func: (e: Event) => void, time = 500) => (e: Event) => {
+  if (e.target === null) return func(e);
+
+  const map = debounceTable[e.type] ?? new Map<EventTarget, number>();
+  debounceTable[e.type] = map;
+
+  let timeout = map.get(e.target);
+  if (timeout !== undefined) clearTimeout(timeout);
+
+  timeout = setTimeout(() => func(e), time);
+  map.set(e.target, timeout);
+};
+
+elements.form.oninput = debounce(reloadStats);

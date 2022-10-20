@@ -18,6 +18,10 @@ table {
   line-height: 114%;
 }
 
+.error {
+  color: crimson;
+}
+
 td:first-child {
   padding-right: 1em;
 }
@@ -45,8 +49,4 @@ td:first-child {
   tr:nth-child(even) {
     background-color: #252525;
   }
-}
-
-#error {
-  color: crimson;
 }

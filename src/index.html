@@ -21,7 +21,7 @@
       </p>
     </header>
     <main>
-      <form onchange="reloadStats()" onkeyup="reloadStats()">
+      <form id="car-counts">
         <table>
           <tbody>
             <tr>
@@ -56,8 +56,9 @@
         </table>
       </form>
       <br />
+      <noscript class="error">You need to enable JavaScript to perform calculations.</noscript>
       <div class="output">
-        <span id="error" hidden="hidden"></span>
+        <span id="error" class="error" hidden="hidden"></span>
         Top speed: <span id="top-speed">0</span>km/h<br />
         Speed uphill: <span id="hill-speed">0</span>km/h<br />
         Initial cost: ¥<span id="cost">0</span><br />
