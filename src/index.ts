@@ -212,17 +212,20 @@ const reloadStats = () => {
 
 const debounceTable: Partial<Record<string, Map<EventTarget, number>>> = {};
 
-const debounce = (func: (e: Event) => void, time = 500) => (e: Event) => {
-  if (e.target === null) return func(e);
+const debounce = (func: (e: Event) => void, time = 100) => (e: Event) => {
+  const target = e.currentTarget;
+  if (target === null) return func(e);
 
-  const map = debounceTable[e.type] ?? new Map<EventTarget, number>();
-  debounceTable[e.type] = map;
+  const map = (debounceTable[e.type] ??= new Map<EventTarget, number>());
 
-  let timeout = map.get(e.target);
+  let timeout = map.get(target);
   if (timeout !== undefined) clearTimeout(timeout);
 
-  timeout = setTimeout(() => func(e), time);
-  map.set(e.target, timeout);
+  timeout = setTimeout(() => {
+    func(e);
+    map.delete(target);
+  }, time);
+  map.set(target, timeout);
 };
 
 elements.form.oninput = debounce(reloadStats);
