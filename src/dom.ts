@@ -2,24 +2,6 @@
 
 /// <reference path="logic.ts" />
 
-const debounceTable: Partial<Record<string, Map<EventTarget, number>>> = {};
-
-const debounce = (func: (e: Event) => void, time = 100) => (e: Event) => {
-  const target = e.currentTarget;
-  if (target === null) return func(e);
-
-  const map = (debounceTable[e.type] ??= new Map<EventTarget, number>());
-
-  let timeout = map.get(target);
-  if (timeout !== undefined) clearTimeout(timeout);
-
-  timeout = setTimeout(() => {
-    func(e);
-    map.delete(target);
-  }, time);
-  map.set(target, timeout);
-};
-
 const elements = {
   workhorse: document.getElementById('workhorse') as HTMLInputElement,
   boiler: document.getElementById('boiler') as HTMLInputElement,
@@ -76,4 +58,9 @@ const reloadStats = () => {
   }
 };
 
-elements.form.oninput = debounce(reloadStats);
+let debounceTimeout: number | undefined;
+
+const debouncedReloadStats = () => {
+  clearTimeout(debounceTimeout);
+  debounceTimeout = setTimeout(reloadStats, 150);
+};

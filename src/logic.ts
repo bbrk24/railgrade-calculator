@@ -2,6 +2,10 @@
 
 /// <reference path="typing.d.ts" />
 
+// This is a special type of map. Conceptually, it's a Map<Multiset<K>, V>, but just using a Multiset type as the key to
+// a Map would be insufficient: Maps use reference equality on their keys. The key type is limited to strings so that
+// Array#sort works as expected; since I only use it with string keys, I have no reason to expand it to take a
+// compareFn. Similarly, there is no delete method, as I have no need for it.
 class SpecialMap<K extends string, V> {
   private backingDict: RecursiveMap<K, V>;
 
@@ -130,59 +134,41 @@ const accelerations = new SpecialMap<EngineName, (carsPerEngine: number) => numb
   // etc
 ]);
 
-const allSame = (arr: readonly unknown[]) => {
-  const firstItem = arr[0];
-  for (const item of arr) {
-    if (item !== firstItem) return false;
-  }
-  return true;
-};
-
-const makeArr = (obj: Record<EngineName, number>) => {
-  const arr: EngineName[] = [];
-  for (const [engine, count] of Object.entries(obj)) {
-    if (!count) continue;
-    // arbitrary limit; above somewhere around 10^6 chrome starts to struggle hard and will eventually crash
-    if (count > 1300000) throw new Error('Provided number(s) too large.');
-    for (let i = 0; i < count; ++i) arr.push(engine);
-  }
-  return arr;
-};
-
-const avg = function<T> (arr: readonly T[], f: (arg: T) => number) {
+const avg = (arr: readonly Engine[], f: (arg: Engine) => number) => {
   return arr.reduce((prev, el) => prev + f(el) / arr.length, 0);
 };
 
-const sum = function<T> (arr: readonly T[], f: (arg: T) => number) {
+const sum = (arr: readonly Engine[], f: (arg: Engine) => number) => {
   return arr.reduce((prev, el) => prev + f(el), 0);
 };
 
-const gcdTwo = (a: number, b: number) => {
+const gcd = (args: readonly number[]) => args.reduce((a, b) => {
   while (b) [a, b] = [b, a % b];
   return a;
-};
+});
 
-const gcdAll = (args: number[]) => args.reduce<number>((prev, curr) => gcdTwo(curr, prev), 0);
-
-const makeSimplifiedArr = (obj: Record<EngineName, number>) => {
+const makeSimplifiedArr = (obj: Readonly<Record<EngineName, number>>) => {
   const countsArr = Object.values(obj);
-  const divisor = gcdAll(countsArr);
+  const divisor = gcd(countsArr);
 
   const retval: EngineName[] = [];
-  for (const [engine, count] of Object.entries(obj)) {
+  for (let [engine, count] of Object.entries(obj)) {
     if (!count) continue;
-    for (let i = 0; i < count / divisor; ++i) retval.push(engine);
+    count /= divisor;
+    // arbitrary limit; above somewhere around 10^6 chrome starts to struggle hard and will eventually crash
+    if (count > 1300000) throw new Error('Provided number(s) too large.');
+    for (let i = 0; i < count; ++i) retval.push(engine);
   }
-  return retval;
+  return [retval, divisor] as const;
 };
 
-const calcStats = (engineCounts: Record<EngineName, number>, cars: number) => {
-  const engineNames = makeArr(engineCounts);
-  const carsPerEngine = cars / engineNames.length;
+const calcStats = (engineCounts: Readonly<Record<EngineName, number>>, cars: number) => {
+  const [engineNames, commonFactor] = makeSimplifiedArr(engineCounts);
+  const carsPerEngine = cars / (engineNames.length * commonFactor);
   const engineObjects = engineNames.map(el => engines[el]);
-  const topSpeed = avg(engineObjects, engine => engine.speed(carsPerEngine));
 
-  const accel = accelerations.get(makeSimplifiedArr(engineCounts))?.(carsPerEngine);
+  const topSpeed = avg(engineObjects, engine => engine.speed(carsPerEngine));
+  const accel = accelerations.get(engineNames)?.(carsPerEngine);
 
   let accelTime = 0;
   if (accel) accelTime = topSpeed / accel;
@@ -190,8 +176,8 @@ const calcStats = (engineCounts: Record<EngineName, number>, cars: number) => {
   return {
     topSpeed: Math.round(topSpeed),
     hillSpeed: Math.round(topSpeed * avg(engineObjects, engine => engine.climbRating)),
-    cost: cars * 16 + sum(engineObjects, engine => engine.cost),
-    upkeep: cars + sum(engineObjects, engine => engine.upkeep),
+    cost: cars * 16 + commonFactor * sum(engineObjects, engine => engine.cost),
+    upkeep: cars + commonFactor * sum(engineObjects, engine => engine.upkeep),
     accel,
     accelTime
   };
