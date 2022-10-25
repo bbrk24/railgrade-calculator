@@ -10,7 +10,8 @@
       referrerpolicy="no-referrer"
     />
     <link href="./index.css" rel="stylesheet" />
-    <script src="./index.ts" defer="defer"></script>
+    <script src="./logic.ts" async></script>
+    <script src="./dom.ts" defer></script>
   </head>
   <body>
     <header>
@@ -58,7 +59,7 @@
       <br />
       <noscript class="error">You need to enable JavaScript to perform calculations.</noscript>
       <div class="output">
-        <span id="error" class="error" hidden="hidden"></span>
+        <span id="error" class="error" hidden></span>
         Top speed: <span id="top-speed">0</span>km/h<br />
         Speed uphill: <span id="hill-speed">0</span>km/h<br />
         Initial cost: ¥<span id="cost">0</span><br />
@@ -67,7 +68,7 @@
           Acceleration: <span id="accel">0</span>km/h/s<br />
           Time to max speed: <span id="accel-time">0</span>s
         </div>
-        <div id="no-accel-info" hidden="hidden">Cannot determine acceleration for mixed engine types.</div>
+        <div id="no-accel-info" hidden>Cannot determine acceleration for this combination of engine types.</div>
       </div>
     </main>
   </body>
