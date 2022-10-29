@@ -1,6 +1,4 @@
-// This file contains all code that interacts directly with the DOM.
-
-/// <reference path="logic.ts" />
+import { calcStats, roundHalf, roundThird, stringifyError } from './logic';
 
 const elements = {
   workhorse: document.getElementById('workhorse') as HTMLInputElement,
@@ -60,7 +58,7 @@ const reloadStats = () => {
 
 let debounceTimeout: number | undefined;
 
-const debouncedReloadStats = () => {
+elements.form.oninput = () => {
   clearTimeout(debounceTimeout);
   debounceTimeout = setTimeout(reloadStats, 150);
 };

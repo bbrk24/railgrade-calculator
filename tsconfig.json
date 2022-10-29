@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "es2019",
-    "module": "none",
+    "module": "es2020",
+    "moduleResolution": "node",
     "removeComments": true,
     "newLine": "lf",
     "strict": true,
